@@ -29,7 +29,7 @@ fillgate check --venue binance               # reads ~/.trading/binance.env (tes
 | --- | --- | --- |
 | Simulated exchange | chaos, seeded | implemented, tested |
 | Alpaca paper | REST | `check` implemented; orders next |
-| Binance spot testnet | REST, HMAC | `check` implemented; orders next |
+| Binance spot testnet | REST, HMAC | `check` implemented, but the testnet answers HTTP 451 from the United States, so it is unusable from this host |
 | Hyperliquid testnet | signed requests | planned |
 
 ## What this is not

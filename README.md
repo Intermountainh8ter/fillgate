@@ -23,6 +23,21 @@ fillgate check --venue binance               # reads ~/.trading/binance.env (tes
 
 `check` refuses a non-paper Alpaca URL and a non-testnet Binance URL. Keys are read from files outside the repository and are never printed, logged or written.
 
+```
+fillgate paper --venue alpaca --run ../walkforward/results/run-btc-donchian.json   # one hourly tick of the paper record
+fillgate report                                                                    # render results/paper into the block below
+```
+
+## The paper record
+
+[docs/PREREGISTRATION-paper-record.md](docs/PREREGISTRATION-paper-record.md) was written before the first paper order. `paper` is one hourly tick: it reads the venue's completed hourly bars, computes the Donchian target with the `n` that walkforward's locked procedure chose for the most recent window, puts at most one market order through the engine's gate (position 0.01 BTC, notional 2,000 USD, daily loss 100 USD, drawdown halt 300 USD), waits for it to resolve, and appends one record to `results/paper/<venue>/<ISO week>.json` with the client ID, every gate decision, every fill, and a SHA-256 of every raw venue response. The same bar can never produce two orders: the bar timestamp is part of the client ID and the state file remembers the last bar decided. `ops/fillgate-paper.timer` runs it at two minutes past each hour.
+
+The Alpaca adapter (`src/alpaca.rs`) is paper-only by construction and reports fills as increments of the venue's running `filled_qty`, priced so the venue's average is preserved. It has not yet placed an order: the key file does not exist on this machine at the time of writing, so the table below is empty until it does.
+
+<!-- PAPER:START -->
+| (no records yet) | | | | | | | | |
+<!-- PAPER:END -->
+
 ## Venues
 
 | Venue | Mode | Status |

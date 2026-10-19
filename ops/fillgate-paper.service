@@ -1,0 +1,8 @@
+[Unit]
+Description=fillgate paper record, one hourly tick (Alpaca paper; places at most one market order)
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/projects/trading/fillgate
+ExecStart=%h/projects/trading/fillgate/target/release/fillgate paper --venue alpaca --run %h/projects/trading/walkforward/results/run-btc-donchian.json --out results/paper

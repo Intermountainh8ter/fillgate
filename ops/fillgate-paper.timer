@@ -1,0 +1,10 @@
+[Unit]
+Description=Run the fillgate paper tick at two minutes past every hour
+
+[Timer]
+OnCalendar=*-*-* *:02:00
+AccuracySec=10s
+Persistent=false
+
+[Install]
+WantedBy=timers.target

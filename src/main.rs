@@ -35,6 +35,34 @@ enum Cmd {
         #[arg(long, default_value = "~/.trading")]
         keys_dir: String,
     },
+    /// One hourly tick of the pre-registered paper record (docs/PREREGISTRATION-paper-record.md): bars in, at most one market order out, one decision record appended.
+    Paper {
+        /// alpaca (hyperliquid once its adapter exists)
+        #[arg(long)]
+        venue: String,
+        #[arg(long, default_value = "BTC/USD")]
+        symbol: String,
+        /// Units per signal (pre-registered: 0.01 BTC).
+        #[arg(long, default_value_t = 0.01)]
+        unit: f64,
+        /// walkforward run file whose last window's chosen `n` is used.
+        #[arg(long)]
+        run: PathBuf,
+        #[arg(long, default_value = "results/paper")]
+        out: PathBuf,
+        #[arg(long, default_value = "~/.trading")]
+        keys_dir: String,
+        /// Seconds to wait for the order to reach a terminal state.
+        #[arg(long, default_value_t = 60)]
+        wait_secs: u64,
+    },
+    /// Render the weekly paper record into the README between PAPER:START/END.
+    Report {
+        #[arg(long, default_value = "results/paper")]
+        out: PathBuf,
+        #[arg(long, default_value = "README.md")]
+        readme: PathBuf,
+    },
 }
 
 fn load_env_file(path: &PathBuf) -> anyhow::Result<std::collections::BTreeMap<String, String>> {
@@ -145,6 +173,22 @@ fn main() -> anyhow::Result<()> {
                 other => anyhow::bail!("unknown venue {other}"),
             }
         }
+        Cmd::Paper { venue, symbol, unit, run, out, keys_dir, wait_secs } => {
+            anyhow::ensure!(venue == "alpaca", "paper: only the alpaca adapter exists so far");
+            let m = load_env_file(&expand_home(&keys_dir).join(format!("{venue}.env")))?;
+            let key = require(&m, "ALPACA_KEY_ID")?;
+            let secret = require(&m, "ALPACA_SECRET_KEY")?;
+            let base = m.get("ALPACA_BASE_URL").map(|s| s.as_str()).unwrap_or("https://paper-api.alpaca.markets");
+            let mut v = fillgate::alpaca::AlpacaPaper::new(base, key, secret)?;
+            let args = fillgate::paper::RunArgs { venue_name: venue, symbol, unit_qty: unit, run_file: run, out_dir: out, wait_secs };
+            let rec = fillgate::paper::run_once(&args, &mut v)?;
+            println!("{}", serde_json::to_string_pretty(&serde_json::json!({
+                "week": rec.week, "bar_ts_ms": rec.bar_ts_ms, "signal": rec.signal, "gate": rec.gate,
+                "position_before": rec.position_before, "position_after": rec.position_after,
+                "order_state": rec.order_state, "fills": rec.fills.len(), "realized_cumulative": rec.realized_cumulative, "equity_mtm": rec.equity_mtm
+            }))?);
+        }
+        Cmd::Report { out, readme } => fillgate::paper::report(&out, &readme)?,
     }
     Ok(())
 }

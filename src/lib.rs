@@ -12,6 +12,9 @@
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
+pub mod alpaca;
+pub mod paper;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Side {
     Buy,

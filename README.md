@@ -43,9 +43,9 @@ The Alpaca adapter (`src/alpaca.rs`) is paper-only by construction and reports f
 | Venue | Mode | Status |
 | --- | --- | --- |
 | Simulated exchange | chaos, seeded | implemented, tested |
-| Alpaca paper | REST | `check` implemented; orders next |
+| Alpaca paper | REST | `check`, market orders, fills and the hourly paper tick implemented (`src/alpaca.rs`, `src/paper.rs`); no order placed yet, the key file does not exist on this host |
 | Binance spot testnet | REST, HMAC | `check` implemented, but the testnet answers HTTP 451 from the United States, so it is unusable from this host |
-| Hyperliquid testnet | signed requests | planned |
+| Hyperliquid testnet | EIP-712 signed L1 actions (`src/hyperliquid.rs`) | signing matches the venue SDK's reference vectors (unit test); `check` runs live against the testnet info endpoint; IOC market orders and cancel-by-client-ID implemented, not yet exercised with a funded wallet |
 
 ## What this is not
 

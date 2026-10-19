@@ -169,7 +169,17 @@ fn main() -> anyhow::Result<()> {
             match venue.as_str() {
                 "alpaca" => check_alpaca(&m)?,
                 "binance" => check_binance(&m)?,
-                "hyperliquid" => anyhow::bail!("hyperliquid: adapter not implemented yet (needs wallet signing)"),
+                "hyperliquid" => {
+                    let base = m.get("HL_BASE_URL").map(|s| s.as_str()).unwrap_or("https://api.hyperliquid-testnet.xyz");
+                    let key_file = require(&m, "HL_PRIVATE_KEY_FILE")?;
+                    let key = std::fs::read_to_string(expand_home(key_file)).map_err(|e| anyhow::anyhow!("HL_PRIVATE_KEY_FILE: {e}"))?;
+                    let mut v = fillgate::hyperliquid::Hyperliquid::new(base, &key)?;
+                    if let Some(w) = m.get("HL_WALLET_ADDRESS") {
+                        anyhow::ensure!(w.trim().eq_ignore_ascii_case(&format!("{:?}", v.address())), "HL_WALLET_ADDRESS does not match the key's address");
+                    }
+                    let a = v.account()?;
+                    println!("hyperliquid testnet: account_value={} withdrawable={} positions={}", a["account_value"], a["withdrawable"], a["n_positions"]);
+                }
                 other => anyhow::bail!("unknown venue {other}"),
             }
         }

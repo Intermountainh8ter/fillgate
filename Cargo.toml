@@ -27,3 +27,5 @@ rmp = "0.8"
 [[bin]]
 name = "fillgate"
 path = "src/main.rs"
+
+[workspace]
